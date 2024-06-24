@@ -1,0 +1,12 @@
+packages:
+  - 'packages/**'
+  - 'packages/framework/block_std'
+  - 'packages/framework/global'
+  - 'packages/framework/inline'
+  - 'packages/framework/store'
+  - 'packages/framework/sync'
+  - 'packages/blocks'
+  - 'packages/docs'
+  - 'packages/playground'
+  - 'packages/presets'
+  - 'packages/theme'
