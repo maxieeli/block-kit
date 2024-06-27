@@ -19,7 +19,7 @@
     "!(examples/**/*).{ts,tsx,js,jsx}": "pnpm exec eslint --cache --fix"
   },
   "keywords": [],
-  "author": "maxieeli<liqipeng@shein.com>",
+  "author": "maxieeli",
   "license": "ISC",
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
