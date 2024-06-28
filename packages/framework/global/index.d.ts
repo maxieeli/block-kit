@@ -1,4 +1,4 @@
-declare type BlockSuiteFlags = {
+declare type BlockKitFlags = {
   enable_synced_doc_block: boolean;
   enable_pie_menu: boolean;
   enable_database_statistics: boolean;
