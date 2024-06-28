@@ -40,11 +40,8 @@
       }
     },
     "files": [
-      "src",
       "dist",
-      "index.d.ts",
-      "!src/__tests__",
-      "!dist/__tests__"
+      "index.d.ts"
     ],
     "dependencies": {
       "lib0": "^0.2.94",
