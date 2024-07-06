@@ -1,0 +1,41 @@
+{
+  "name": "@maxiee/block_sync",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test:unit": "vitest --run",
+    "test": "pnpm test:unit"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@maxiee/block_global": "workspace:*",
+    "idb": "^8.0.0",
+    "idb-keyval": "^6.2.1",
+    "y-protocols": "^1.0.6"
+  },
+  "peerDependencies": {
+    "yjs": "^13.6.15"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./impl/*": "./src/impl/*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "module": "./dist/index.js",
+        "import": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "!src/__tests__",
+    "!dist/__tests__"
+  ]
+}
