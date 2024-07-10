@@ -212,7 +212,6 @@ export class EventService<TextAttributes extends BaseTextAttributes> {
         tmpInlineRange.index > 0
       ) {
         // do not use target range when deleting across lines
-        // https://github.com/toeverything/blocksuite/issues/5381
         this.editor.setInlineRange({
           index: tmpInlineRange.index - 1,
           length: 1,

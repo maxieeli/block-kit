@@ -15,7 +15,7 @@ export class BroadcastChannelDocSource implements DocSource {
   channel = new BroadcastChannel(this.channelName);
   docMap = new Map<string, Uint8Array>();
 
-  constructor(readonly channelName: string = 'blocksuite:doc') {
+  constructor(readonly channelName: string = 'blockkit:doc') {
     this.channel.addEventListener('message', this._onMessage);
 
     this.channel.postMessage({
