@@ -320,7 +320,7 @@ export class BlockCollection extends Space<FlatBlockMap> {
 }
 
 declare global {
-  namespace BlockSuite {
+  namespace BlockKit {
     interface BlockModels {}
 
     type Flavour = string & keyof BlockModels;

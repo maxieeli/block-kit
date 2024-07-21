@@ -5,7 +5,7 @@ import { COLLECTION_VERSION, PAGE_VERSION } from '../consts.js';
 import type { BlockKitDoc } from '../yjs/index.js';
 import type { DocCollection } from './collection.js';
 
-// please use `declare module '@blocksuite/store'` to extend this interface
+// please use `declare module '@maxiee/block_store'` to extend this interface
 export interface DocMeta {
   id: string;
   title: string;

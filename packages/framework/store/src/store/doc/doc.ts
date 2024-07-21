@@ -343,7 +343,7 @@ export class Doc {
     this.slots.rootDeleted.dispose();
   }
 
-  getSchemaByFlavour(flavour: BlockSuite.Flavour) {
+  getSchemaByFlavour(flavour: BlockKit.Flavour) {
     return this._schema.flavourSchemaMap.get(flavour);
   }
 
@@ -464,9 +464,9 @@ export class Doc {
     return ids;
   }
 
-  addBlock<Key extends BlockSuite.Flavour>(
+  addBlock<Key extends BlockKit.Flavour>(
     flavour: Key,
-    blockProps?: BlockSuite.ModelProps<BlockSuite.BlockModels[Key]>,
+    blockProps?: BlockKit.ModelProps<BlockKit.BlockModels[Key]>,
     parent?: BlockModel | string | null,
     parentIndex?: number
   ): string;
