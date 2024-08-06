@@ -65,7 +65,7 @@ export class EditorHost extends WithDisposable(ShadowlessElement) {
   @property({ attribute: false })
   accessor widgetIdAttr = 'data-widget-id';
 
-  std!: BlockSuite.Std;
+  std!: BlockKit.Std;
 
   rangeManager: RangeManager | null = null;
 
@@ -215,7 +215,7 @@ declare global {
     'editor-host': EditorHost;
   }
 
-  namespace BlockSuite {
+  namespace BlockKit {
     interface ComponentType {
       lit: StaticValue;
     }
