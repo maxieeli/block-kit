@@ -5,7 +5,7 @@ import './list-block/index.js';
 import './note-block/index.js';
 import './frame-block/index.js';
 import './divider-block/index.js';
-import './code-block/affine-code-line.js';
+import './code-block/block-code-line.js';
 import './image-block/index.js';
 import './database-block/index.js';
 import './surface-ref-block/index.js';
@@ -51,12 +51,12 @@ export {
 export * from './_common/icons/index.js';
 export * from './_common/inline/inline-manager.js';
 export {
-  type AffineInlineEditor,
-  type AffineTextAttributes,
-  getAffineInlineSpecsWithReference,
-} from './_common/inline/presets/affine-inline-specs.js';
+  type WorkbenchInlineEditor,
+  type WorkbenchTextAttributes,
+  getWorkbenchInlineSpecsWithReference,
+} from './_common/inline/presets/workbench-inline-specs.js';
 export { ReferenceNodeConfig } from './_common/inline/presets/nodes/reference-node/reference-config.js';
-export { AffineReference } from './_common/inline/presets/nodes/reference-node/reference-node.js';
+export { WorkbenchReference } from './_common/inline/presets/nodes/reference-node/reference-node.js';
 export { type TreeNode, type TreeNodeWithId } from './_common/mind-map/draw.js';
 export * from './_common/test-utils/test-utils.js';
 export {
@@ -122,7 +122,7 @@ export * from './root-block/index.js';
 export * from './schemas.js';
 export * from './specs/index.js';
 export {
-  AffineCanvasTextFonts,
+  WorkbenchCanvasTextFonts,
   Bound,
   BrushElementModel,
   CanvasElementType,
@@ -171,18 +171,18 @@ const env: Record<string, unknown> =
         ? // @ts-ignore
           global
         : {};
-const importIdentifier = '__ $BLOCKSUITE_BLOCKS$ __';
+const importIdentifier = '__ $BLOCKKIT_BLOCKS$ __';
 
 if (env[importIdentifier] === true) {
   // https://github.com/yjs/yjs/issues/438
   console.error(
-    '@blocksuite/blocks was already imported. This breaks constructor checks and will lead to issues!'
+    '@maxiee/blocks was already imported. This breaks constructor checks and will lead to issues!'
   );
 }
 
 if (typeof window === 'undefined') {
   throw new Error(
-    'Seems like you are importing @blocksuite/blocks in SSR mode. Which is not supported for now.'
+    'Seems like you are importing @maxiee/blocks in SSR mode. Which is not supported for now.'
   );
 }
 

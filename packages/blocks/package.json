@@ -10,9 +10,9 @@
   "license": "MPL-2.0",
   "dependencies": {
     "@maxiee/block-std": "workspace:*",
-    "@blocksuite/global": "workspace:*",
-    "@blocksuite/inline": "workspace:*",
-    "@blocksuite/store": "workspace:*",
+    "@maxiee/block_global": "workspace:*",
+    "@maxiee/block_inline": "workspace:*",
+    "@maxiee/block_store": "workspace:*",
     "@dotlottie/player-component": "^2.7.12",
     "@floating-ui/dom": "^1.6.5",
     "@lit/context": "^1.1.1",

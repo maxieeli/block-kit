@@ -1,7 +1,7 @@
-/** Legacy entry used for AFFiNE ESM module compat */
-/// <reference types="@blocksuite/global" />
+/** Legacy entry used for workbench ESM module compat */
+/// <reference types="@maxiee/block_global" />
 // Import models only, the bundled file should not include anything else.
-import type { BlockSchema } from '@blocksuite/store';
+import type { BlockSchema } from '@maxiee/block_store';
 import type { z } from 'zod';
 
 import { AttachmentBlockSchema } from './attachment-block/attachment-model.js';
@@ -27,8 +27,8 @@ import { RootBlockSchema } from './root-block/root-model.js';
 import { SurfaceBlockSchema } from './surface-block/surface-model.js';
 import { SurfaceRefBlockSchema } from './surface-ref-block/surface-ref-model.js';
 
-/** Built-in first party block models built for affine */
-export const AffineSchemas: z.infer<typeof BlockSchema>[] = [
+/** Built-in first party block models built for workbench */
+export const WorkbenchSchemas: z.infer<typeof BlockSchema>[] = [
   CodeBlockSchema,
   ParagraphBlockSchema,
   RootBlockSchema,
