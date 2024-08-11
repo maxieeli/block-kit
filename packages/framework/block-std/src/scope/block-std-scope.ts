@@ -61,7 +61,7 @@ export class BlockStdScope {
 type Values<T> = T[keyof T] extends never ? unknown : T[keyof T];
 
 declare global {
-  namespace BlockSuite {
+  namespace BlockKit {
     interface ComponentType {}
     interface NodeViewType {}
 
