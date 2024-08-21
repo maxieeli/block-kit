@@ -1,6 +1,7 @@
 import type { BlockStdScope } from '@maxiee/block-std';
 import { DisposableGroup, Slot } from '@maxiee/block_global/utils';
 import type { Doc } from '@maxiee/block_store';
+
 import { ThemeObserver } from '../_common/theme/theme-observer.js';
 import type { NoteBlockModel } from '../note-block/index.js';
 import { Renderer } from '../surface-block/index.js';
