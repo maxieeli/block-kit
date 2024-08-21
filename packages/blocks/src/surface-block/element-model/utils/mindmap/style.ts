@@ -1,0 +1,374 @@
+import { last } from '../../../../_common/utils/iterable.js';
+import { fitContent } from '../../../canvas-renderer/element-renderer/shape/utils.js';
+import { FontFamily, FontWeight, StrokeStyle } from '../../../consts.js';
+import { ConnectorMode } from '../../connector.js';
+import type { ShapeElementModel } from '../../shape.js';
+import type { MindmapNode } from './layout.js';
+
+export type NodeStyle = {
+  radius: number;
+
+  strokeWidth: number;
+  strokeColor: string;
+
+  fontSize: number;
+  fontFamily: string;
+  fontWeight: FontWeight;
+  color: string;
+
+  filled: boolean;
+  fillColor: string;
+
+  padding: [number, number];
+
+  shadow?: {
+    blur: number;
+    offsetX: number;
+    offsetY: number;
+    color: string;
+  };
+};
+
+export type ConnectorStyle = {
+  strokeStyle: StrokeStyle;
+  stroke: string;
+  strokeWidth: number;
+
+  mode: ConnectorMode;
+};
+
+export abstract class MindmapStyleGetter {
+  abstract readonly root: NodeStyle;
+
+  abstract getNodeStyle(
+    node: MindmapNode,
+    path: number[]
+  ): {
+    connector: ConnectorStyle;
+    node: NodeStyle;
+  };
+}
+
+export class StyleOne extends MindmapStyleGetter {
+  private _colorOrders = [
+    '--workbench-palette-line-purple',
+    '--workbench-palette-line-magenta',
+    '--workbench-palette-line-orange',
+    '--workbench-palette-line-yellow',
+    '--workbench-palette-line-green',
+    '#7ae2d5',
+  ];
+
+  readonly root = {
+    radius: 8,
+
+    strokeWidth: 4,
+    strokeColor: '#84CFFF',
+
+    fontFamily: FontFamily.Poppins,
+    fontSize: 20,
+    fontWeight: FontWeight.SemiBold,
+    color: '--workbench-black',
+
+    filled: true,
+    fillColor: '--workbench-white',
+
+    padding: [11, 22] as [number, number],
+
+    shadow: {
+      offsetX: 0,
+      offsetY: 6,
+      blur: 12,
+      color: 'rgba(0, 0, 0, 0.14)',
+    },
+  };
+
+  private _getColor(number: number) {
+    return this._colorOrders[number % this._colorOrders.length];
+  }
+
+  getNodeStyle(
+    _: MindmapNode,
+    path: number[]
+  ): { connector: ConnectorStyle; node: NodeStyle } {
+    const color = this._getColor(path[1] ?? 0);
+
+    return {
+      connector: {
+        strokeStyle: StrokeStyle.Solid,
+        stroke: color,
+        strokeWidth: 3,
+
+        mode: ConnectorMode.Curve,
+      },
+      node: {
+        radius: 8,
+
+        strokeWidth: 3,
+        strokeColor: color,
+
+        fontFamily: FontFamily.Poppins,
+        fontSize: 16,
+        fontWeight: FontWeight.Medium,
+        color: '--workbench-black',
+
+        filled: true,
+        fillColor: '--workbench-white',
+
+        padding: [6, 22] as [number, number],
+
+        shadow: {
+          offsetX: 0,
+          offsetY: 6,
+          blur: 12,
+          color: 'rgba(0, 0, 0, 0.14)',
+        },
+      },
+    };
+  }
+}
+export const styleOne = new StyleOne();
+
+export class StyleTwo extends MindmapStyleGetter {
+  private _colorOrders = [
+    '--workbench-palette-shape-blue',
+    '#7ae2d5',
+    '--workbench-palette-shape-yellow',
+  ];
+
+  readonly root = {
+    radius: 3,
+
+    strokeWidth: 3,
+    strokeColor: '--workbench-black',
+
+    fontFamily: FontFamily.Poppins,
+    fontSize: 18,
+    fontWeight: FontWeight.SemiBold,
+    color: '--workbench-palette-shape-black',
+
+    filled: true,
+    fillColor: '--workbench-palette-shape-orange',
+
+    padding: [11, 22] as [number, number],
+
+    shadow: {
+      blur: 0,
+      offsetX: 3,
+      offsetY: 3,
+      color: '--workbench-black',
+    },
+  };
+
+  private _getColor(number: number) {
+    return number >= this._colorOrders.length
+      ? last(this._colorOrders)!
+      : this._colorOrders[number];
+  }
+
+  getNodeStyle(
+    _: MindmapNode,
+    path: number[]
+  ): { connector: ConnectorStyle; node: NodeStyle } {
+    const color = this._getColor(path.length - 2);
+
+    return {
+      connector: {
+        strokeStyle: StrokeStyle.Solid,
+        stroke: '--workbench-black',
+        strokeWidth: 3,
+
+        mode: ConnectorMode.Orthogonal,
+      },
+      node: {
+        radius: 3,
+
+        strokeWidth: 3,
+        strokeColor: '--workbench-black',
+
+        fontFamily: FontFamily.Poppins,
+        fontSize: 16,
+        fontWeight: FontWeight.SemiBold,
+        color: '--workbench-palette-shape-black',
+
+        filled: true,
+        fillColor: color,
+
+        padding: [6, 22] as [number, number],
+
+        shadow: {
+          blur: 0,
+          offsetX: 3,
+          offsetY: 3,
+          color: '--workbench-black',
+        },
+      },
+    };
+  }
+}
+export const styleTwo = new StyleTwo();
+
+export class StyleThree extends MindmapStyleGetter {
+  private _strokeColor = [
+    '--workbench-palette-line-yellow',
+    '--workbench-palette-line-green',
+    '--workbench-palette-line-teal',
+  ];
+
+  readonly root = {
+    radius: 10,
+
+    strokeWidth: 0,
+    strokeColor: 'transparent',
+
+    fontFamily: FontFamily.Poppins,
+    fontSize: 16,
+    fontWeight: FontWeight.Medium,
+    color: '--workbench-palette-shape-black',
+
+    filled: true,
+    fillColor: '--workbench-palette-shape-yellow',
+
+    padding: [10, 22] as [number, number],
+
+    shadow: {
+      blur: 12,
+      offsetX: 0,
+      offsetY: 0,
+      color: 'rgba(66, 65, 73, 0.18)',
+    },
+  };
+
+  private _getColor(number: number) {
+    return this._strokeColor[number % this._strokeColor.length];
+  }
+
+  override getNodeStyle(
+    _: MindmapNode,
+    path: number[]
+  ): { connector: ConnectorStyle; node: NodeStyle } {
+    const strokeColor = this._getColor(path.length - 2);
+
+    return {
+      node: {
+        radius: 10,
+
+        strokeWidth: 0,
+        strokeColor: 'transparent',
+
+        fontFamily: FontFamily.Poppins,
+        fontSize: 16,
+        fontWeight: FontWeight.Medium,
+        color: '--workbench-palette-shape-black',
+
+        filled: true,
+        fillColor: '--workbench-palette-shape-white',
+
+        padding: [6, 22] as [number, number],
+
+        shadow: {
+          blur: 12,
+          offsetX: 0,
+          offsetY: 0,
+          color: 'rgba(66, 65, 73, 0.18)',
+        },
+      },
+      connector: {
+        strokeStyle: StrokeStyle.Solid,
+        stroke: strokeColor,
+        strokeWidth: 2,
+
+        mode: ConnectorMode.Curve,
+      },
+    };
+  }
+}
+export const styleThree = new StyleThree();
+
+export class StyleFour extends MindmapStyleGetter {
+  private _colors = [
+    '--workbench-palette-shape-purple',
+    '--workbench-palette-shape-magenta',
+    '--workbench-palette-shape-orange',
+    '--workbench-palette-shape-yellow',
+    '--workbench-palette-shape-green',
+    '--workbench-palette-shape-blue',
+  ];
+
+  readonly root = {
+    radius: 0,
+
+    strokeWidth: 0,
+    strokeColor: 'transparent',
+
+    fontFamily: FontFamily.Kalam,
+    fontSize: 22,
+    fontWeight: FontWeight.Bold,
+    color: '--workbench-black',
+
+    filled: true,
+    fillColor: 'transparent',
+
+    padding: [0, 10] as [number, number],
+  };
+
+  private _getColor(order: number) {
+    return this._colors[order % this._colors.length];
+  }
+
+  getNodeStyle(
+    _: MindmapNode,
+    path: number[]
+  ): { connector: ConnectorStyle; node: NodeStyle } {
+    const stroke = this._getColor(path[1] ?? 0);
+
+    return {
+      connector: {
+        strokeStyle: StrokeStyle.Solid,
+        stroke,
+        strokeWidth: 3,
+
+        mode: ConnectorMode.Curve,
+      },
+      node: {
+        ...this.root,
+
+        fontSize: 18,
+        padding: [1.5, 10] as [number, number],
+      },
+    };
+  }
+}
+export const styleFour = new StyleFour();
+
+export enum MindmapStyle {
+  ONE = 1,
+  TWO = 2,
+  THREE = 3,
+  FOUR = 4,
+}
+
+export const mindmapStyleGetters: {
+  [key in MindmapStyle]: MindmapStyleGetter;
+} = {
+  [MindmapStyle.ONE]: styleOne,
+  [MindmapStyle.TWO]: styleTwo,
+  [MindmapStyle.THREE]: styleThree,
+  [MindmapStyle.FOUR]: styleFour,
+};
+
+export const applyNodeStyle = (
+  node: MindmapNode,
+  nodeStyle: NodeStyle,
+  shouldFitContent: boolean = false
+) => {
+  Object.entries(nodeStyle).forEach(([key, value]) => {
+    // @ts-ignore
+    if (node.element[key] !== value) {
+      // @ts-ignore
+      node.element[key] = value;
+    }
+  });
+
+  shouldFitContent && fitContent(node.element as ShapeElementModel);
+};
