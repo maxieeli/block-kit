@@ -1,3 +1,4 @@
+/// <reference types="@maxiee/block_global" />
 // manual import to avoid being tree-shaken
 import './root-block/index.js';
 import './paragraph-block/index.js';
@@ -5,7 +6,7 @@ import './list-block/index.js';
 import './note-block/index.js';
 import './frame-block/index.js';
 import './divider-block/index.js';
-import './code-block/block-code-line.js';
+import './code-block/workbench-code-line.js';
 import './image-block/index.js';
 import './database-block/index.js';
 import './surface-ref-block/index.js';
@@ -172,18 +173,5 @@ const env: Record<string, unknown> =
           global
         : {};
 const importIdentifier = '__ $BLOCKKIT_BLOCKS$ __';
-
-if (env[importIdentifier] === true) {
-  // https://github.com/yjs/yjs/issues/438
-  console.error(
-    '@maxiee/blocks was already imported. This breaks constructor checks and will lead to issues!'
-  );
-}
-
-if (typeof window === 'undefined') {
-  throw new Error(
-    'Seems like you are importing @maxiee/blocks in SSR mode. Which is not supported for now.'
-  );
-}
 
 env[importIdentifier] = true;

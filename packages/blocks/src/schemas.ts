@@ -1,4 +1,3 @@
-/** Legacy entry used for workbench ESM module compat */
 /// <reference types="@maxiee/block_global" />
 // Import models only, the bundled file should not include anything else.
 import type { BlockSchema } from '@maxiee/block_store';
@@ -27,7 +26,6 @@ import { RootBlockSchema } from './root-block/root-model.js';
 import { SurfaceBlockSchema } from './surface-block/surface-model.js';
 import { SurfaceRefBlockSchema } from './surface-ref-block/surface-ref-model.js';
 
-/** Built-in first party block models built for workbench */
 export const WorkbenchSchemas: z.infer<typeof BlockSchema>[] = [
   CodeBlockSchema,
   ParagraphBlockSchema,
