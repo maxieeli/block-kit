@@ -14,7 +14,7 @@ export {
   ZOOM_STEP,
 } from './consts.js';
 export {
-  AffineCanvasTextFonts,
+  WorkbenchCanvasTextFonts,
   CommunityCanvasTextFonts,
   GRID_GAP_MAX,
   GRID_GAP_MIN,

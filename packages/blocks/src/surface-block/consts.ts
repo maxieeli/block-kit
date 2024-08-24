@@ -99,7 +99,7 @@ export const FontFamilyList = Object.entries(FontFamilyMap) as {
   [K in FontFamily]: [K, (typeof FontFamilyMap)[K]];
 }[FontFamily][];
 
-export const AffineCanvasTextFonts: FontConfig[] = [
+export const WorkbenchCanvasTextFonts: FontConfig[] = [
   // Inter, https://fonts.cdnfonts.com/css/inter?styles=29139,29134,29135,29136,29140,29141
   {
     font: FontFamily.Inter,
