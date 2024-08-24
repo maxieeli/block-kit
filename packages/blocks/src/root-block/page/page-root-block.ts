@@ -1,0 +1,440 @@
+import type { PointerEventState } from '@maxiee/block-std';
+import { BlockElement } from '@maxiee/block-std';
+import { assertExists } from '@maxiee/block_global/utils';
+import type { BlockModel } from '@maxiee/block_store';
+import type { Text } from '@maxiee/block_store';
+import { css, html } from 'lit';
+import { customElement, query } from 'lit/decorators.js';
+import { repeat } from 'lit/directives/repeat.js';
+
+import {
+  buildPath,
+  focusTitle,
+  type Viewport,
+} from '../../_common/utils/index.js';
+import {
+  asyncFocusRichText,
+  getDocTitleInlineEditor,
+  matchFlavours,
+  NoteDisplayMode,
+} from '../../_common/utils/index.js';
+import type { NoteBlockModel } from '../../note-block/index.js';
+import { PageClipboard } from '../clipboard/index.js';
+import type { PageRootBlockWidgetName } from '../index.js';
+import { PageKeyboardManager } from '../keyboard/keyboard-manager.js';
+import type { RootBlockModel } from '../root-model.js';
+import type { PageRootService } from './page-root-service.js';
+
+const DOC_BLOCK_CHILD_PADDING = 24;
+const DOC_BOTTOM_PADDING = 32;
+
+function testClickOnBlankArea(
+  state: PointerEventState,
+  viewportLeft: number,
+  viewportWidth: number,
+  pageWidth: number,
+  paddingLeft: number,
+  paddingRight: number
+) {
+  const blankLeft =
+    viewportLeft + (viewportWidth - pageWidth) / 2 + paddingLeft;
+  const blankRight =
+    viewportLeft + (viewportWidth - pageWidth) / 2 + pageWidth - paddingRight;
+
+  if (state.raw.clientX < blankLeft || state.raw.clientX > blankRight) {
+    return true;
+  }
+
+  return false;
+}
+
+@customElement('workbench-page-root')
+export class PageRootBlockComponent extends BlockElement<
+  RootBlockModel,
+  PageRootService,
+  PageRootBlockWidgetName
+> {
+  get slots() {
+    return this.service.slots;
+  }
+
+  get viewportElement(): HTMLDivElement {
+    if (this._viewportElement) return this._viewportElement;
+    this._viewportElement = this.host.closest(
+      '.workbench-page-viewport'
+    ) as HTMLDivElement | null;
+    assertExists(this._viewportElement);
+    return this._viewportElement;
+  }
+
+  get viewport(): Viewport {
+    const {
+      scrollLeft,
+      scrollTop,
+      scrollWidth,
+      scrollHeight,
+      clientWidth,
+      clientHeight,
+    } = this.viewportElement;
+    const { top, left } = this.viewportElement.getBoundingClientRect();
+    return {
+      top,
+      left,
+      scrollLeft,
+      scrollTop,
+      scrollWidth,
+      scrollHeight,
+      clientWidth,
+      clientHeight,
+    };
+  }
+
+  static override styles = css`
+    editor-host:has(> workbench-page-root, * > workbench-page-root) {
+      display: block;
+      height: 100%;
+    }
+
+    workbench-page-root {
+      display: block;
+      height: 100%;
+    }
+
+    .workbench-page-root-block-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      font-family: var(--workbench-font-family);
+      font-size: var(--workbench-font-base);
+      line-height: var(--workbench-line-height);
+      color: var(--workbench-text-primary-color);
+      font-weight: 400;
+      max-width: var(--workbench-editor-width);
+      margin: 0 auto;
+      /* cursor: crosshair; */
+      cursor: default;
+
+      /* Leave a place for drag-handle */
+      /* Do not use prettier format this style, or it will be broken */
+      /* prettier-ignore */
+      padding-left: var(--workbench-editor-side-padding, ${DOC_BLOCK_CHILD_PADDING}px);
+      /* prettier-ignore */
+      padding-right: var(--workbench-editor-side-padding, ${DOC_BLOCK_CHILD_PADDING}px);
+      /* prettier-ignore */
+      padding-bottom: var(--workbench-editor-bottom-padding, ${DOC_BOTTOM_PADDING}px);
+    }
+
+    /* Extra small devices (phones, 640px and down) */
+    @container viewport (width <= 640px) {
+      .workbench-page-root-block-container {
+        padding-left: ${DOC_BLOCK_CHILD_PADDING}px;
+        padding-right: ${DOC_BLOCK_CHILD_PADDING}px;
+      }
+    }
+
+    .workbench-block-element {
+      display: block;
+    }
+
+    @media print {
+      .selected {
+        background-color: transparent !important;
+      }
+    }
+  `;
+
+  private _viewportElement: HTMLDivElement | null = null;
+
+  keyboardManager: PageKeyboardManager | null = null;
+
+  clipboardController = new PageClipboard(this);
+
+  @query('.workbench-page-root-block-container')
+  accessor rootElementContainer!: HTMLDivElement;
+
+  private _createDefaultNoteBlock() {
+    const { doc } = this;
+
+    const noteId = doc.addBlock('workbench:note', {}, doc.root?.id);
+    return doc.getBlockById(noteId) as NoteBlockModel;
+  }
+
+  private _getDefaultNoteBlock() {
+    return (
+      this.doc.root?.children.find(child => child.flavour === 'workbench:note') ??
+      this._createDefaultNoteBlock()
+    );
+  }
+
+  private _initViewportResizeEffect() {
+    // when observe viewportElement resize, emit viewport update event
+    const resizeObserver = new ResizeObserver(
+      (entries: ResizeObserverEntry[]) => {
+        for (const { target } of entries) {
+          if (target === this.viewportElement) {
+            this.slots.viewportUpdated.emit(this.viewport);
+            break;
+          }
+        }
+      }
+    );
+    resizeObserver.observe(this.viewportElement);
+    this.disposables.add(() => {
+      resizeObserver.unobserve(this.viewportElement);
+      resizeObserver.disconnect();
+    });
+  }
+
+  prependParagraphWithText = (text: Text) => {
+    const newFirstParagraphId = this.doc.addBlock(
+      'workbench:paragraph',
+      { text },
+      this._getDefaultNoteBlock(),
+      0
+    );
+    asyncFocusRichText(this.host, newFirstParagraphId)?.catch(console.error);
+  };
+
+  focusFirstParagraph = () => {
+    const defaultNote = this._getDefaultNoteBlock();
+    const firstText = defaultNote?.children.find(block =>
+      matchFlavours(block, ['workbench:paragraph', 'workbench:list', 'workbench:code'])
+    );
+    if (firstText) {
+      asyncFocusRichText(this.host, firstText.id)?.catch(console.error);
+    } else {
+      const newFirstParagraphId = this.doc.addBlock(
+        'workbench:paragraph',
+        {},
+        defaultNote,
+        0
+      );
+      asyncFocusRichText(this.host, newFirstParagraphId)?.catch(console.error);
+    }
+  };
+
+  override firstUpdated() {
+    this._initViewportResizeEffect();
+    const noteModels = this.model.children.filter(model =>
+      matchFlavours(model, ['workbench:note'])
+    );
+    noteModels.forEach(note => {
+      this.disposables.add(
+        note.propsUpdated.on(({ key }) => {
+          if (key === 'displayMode') {
+            this.requestUpdate();
+          }
+        })
+      );
+    });
+  }
+
+  override connectedCallback() {
+    super.connectedCallback();
+    this.clipboardController.hostConnected();
+
+    this.keyboardManager = new PageKeyboardManager(this);
+
+    this.bindHotKey({
+      'Mod-a': () => {
+        const blocks = this.model.children
+          .filter(model => {
+            if (matchFlavours(model, ['workbench:note'])) {
+              const note = model as NoteBlockModel;
+              if (note.displayMode === NoteDisplayMode.EdgelessOnly)
+                return false;
+
+              return true;
+            }
+            return false;
+          })
+          .flatMap(model => {
+            return model.children.map(child => {
+              return this.std.selection.create('block', {
+                blockId: child.id,
+              });
+            });
+          });
+        this.std.selection.setGroup('note', blocks);
+        return true;
+      },
+      ArrowUp: () => {
+        const selection = this.host.selection;
+        const sel = selection.value.find(
+          sel => sel.is('text') || sel.is('block')
+        );
+        if (!sel) return;
+        let model: BlockModel | null = null;
+        let path: string[] = buildPath(this.doc.getBlockById(sel.blockId));
+        while (path.length > 0 && !model) {
+          const m = this.doc.getBlockById(path[path.length - 1]);
+          if (m && m.flavour === 'workbench:note') {
+            model = m;
+          }
+          path = path.slice(0, -1);
+        }
+        if (!model) return;
+        const prevNote = this.doc.getPrev(model);
+        if (!prevNote || prevNote.flavour !== 'workbench:note') {
+          const isFirstText = sel.is('text') && sel.start.index === 0;
+          const isBlock = sel.is('block');
+          if (isBlock || isFirstText) {
+            focusTitle(this.host);
+          }
+          return;
+        }
+        const notes = this.doc.getBlockByFlavour('workbench:note');
+        const index = notes.indexOf(prevNote);
+        if (index !== 0) return;
+
+        const range = this.host.rangeManager?.value;
+        requestAnimationFrame(() => {
+          const currentRange = this.host.rangeManager?.value;
+
+          if (!range || !currentRange) return;
+
+          // If the range has not changed, it means we need to manually move the cursor to the title.
+          if (
+            range.startContainer === currentRange.startContainer &&
+            range.startOffset === currentRange.startOffset &&
+            range.endContainer === currentRange.endContainer &&
+            range.endOffset === currentRange.endOffset
+          ) {
+            const titleInlineEditor = getDocTitleInlineEditor(this.host);
+            if (titleInlineEditor) {
+              titleInlineEditor.focusEnd();
+            }
+          }
+        });
+      },
+    });
+
+    this.handleEvent('click', ctx => {
+      const event = ctx.get('pointerState');
+      if (
+        event.raw.target !== this &&
+        event.raw.target !== this.viewportElement &&
+        event.raw.target !== this.rootElementContainer
+      ) {
+        return;
+      }
+
+      const { paddingLeft, paddingRight } = window.getComputedStyle(
+        this.rootElementContainer
+      );
+      const isClickOnBlankArea = testClickOnBlankArea(
+        event,
+        this.viewport.left,
+        this.viewport.clientWidth,
+        this.rootElementContainer.clientWidth,
+        parseFloat(paddingLeft),
+        parseFloat(paddingRight)
+      );
+      if (isClickOnBlankArea) {
+        this.host.selection.clear(['block']);
+        return;
+      }
+
+      let newTextSelectionId: string | null = null;
+      const readonly = this.doc.readonly;
+      const lastNote = this.model.children
+        .slice()
+        .reverse()
+        .find(child => {
+          const isNote = matchFlavours(child, ['workbench:note']);
+          if (!isNote) return false;
+          const note = child as NoteBlockModel;
+          const displayOnDoc =
+            !!note.displayMode &&
+            note.displayMode !== NoteDisplayMode.EdgelessOnly;
+          return displayOnDoc;
+        });
+      if (!lastNote) {
+        if (readonly) return;
+        const noteId = this.doc.addBlock('workbench:note', {}, this.model.id);
+        const paragraphId = this.doc.addBlock('workbench:paragraph', {}, noteId);
+        newTextSelectionId = paragraphId;
+      } else {
+        const last = lastNote.children.at(-1);
+        if (
+          !last ||
+          !last.text ||
+          matchFlavours(last, [
+            'workbench:code',
+            'workbench:divider',
+            'workbench:image',
+            'workbench:database',
+            'workbench:bookmark',
+            'workbench:attachment',
+            'workbench:surface-ref',
+          ]) ||
+          /workbench:embed-*/.test(last.flavour)
+        ) {
+          if (readonly) return;
+          const paragraphId = this.doc.addBlock(
+            'workbench:paragraph',
+            {},
+            lastNote.id
+          );
+          newTextSelectionId = paragraphId;
+        }
+      }
+
+      this.updateComplete
+        .then(() => {
+          if (!newTextSelectionId) return;
+          this.host.selection.setGroup('note', [
+            this.host.selection.create('text', {
+              from: {
+                blockId: newTextSelectionId,
+                index: 0,
+                length: 0,
+              },
+              to: null,
+            }),
+          ]);
+        })
+        .catch(console.error);
+    });
+  }
+
+  override disconnectedCallback() {
+    super.disconnectedCallback();
+    this.clipboardController.hostDisconnected();
+    this._disposables.dispose();
+    this.keyboardManager = null;
+  }
+
+  override renderBlock() {
+    const content = html`${repeat(
+      this.model.children.filter(child => {
+        const isNote = matchFlavours(child, ['workbench:note']);
+        const note = child as NoteBlockModel;
+        const displayOnEdgeless =
+          !!note.displayMode &&
+          note.displayMode === NoteDisplayMode.EdgelessOnly;
+        // Should remove deprecated `hidden` property in the future
+        return !(isNote && displayOnEdgeless);
+      }),
+      child => child.id,
+      child => this.host.renderModel(child)
+    )}`;
+
+    const widgets = html`${repeat(
+      Object.entries(this.widgets),
+      ([id]) => id,
+      ([_, widget]) => widget
+    )}`;
+
+    return html`
+      <div class="workbench-page-root-block-container">${content} ${widgets}</div>
+    `;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'workbench-page-root': PageRootBlockComponent;
+  }
+}
